@@ -16,6 +16,11 @@ public class ByteMessage implements Message {
         this.data = data;
     }
 
+    public ByteMessage(final InetSocketAddress senderAddress, final String data) {
+        this.senderAddress = senderAddress;
+        this.data = data.getBytes();
+    }
+
     @Override
     public byte[] getData() {
         return data;
