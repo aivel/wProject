@@ -155,7 +155,9 @@ public class AsyncUDPServer implements Server {
                     }
 
                     readBuffer.flip();
-                    processIncomingMessage(new ByteMessage(senderAddress, readBuffer.array()));
+                    byte[] b = new byte[readBuffer.remaining()];
+                    readBuffer.get(b, 0, b.length);
+                    processIncomingMessage(new ByteMessage(senderAddress, b));
                 }
             }
 
