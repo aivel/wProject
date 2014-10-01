@@ -1,5 +1,7 @@
 package root.application.model;
 
+import org.json.simple.JSONObject;
+
 /**
  * Created by Semyon Danilov on 01.10.2014.
  */
@@ -87,15 +89,15 @@ public class Weather {
 
     @Override
     public String toString() {
-        return "Weather{" +
-                "temperature=" + temperature +
-                ", minTemperature=" + minTemperature +
-                ", cityName='" + cityName + '\'' +
-                ", countryName='" + countryName + '\'' +
-                ", windAngle=" + windAngle +
-                ", windSpeed=" + windSpeed +
-                ", effect='" + effect + '\'' +
-                '}';
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("temperature", temperature);
+        jsonObject.put("minTemperature", minTemperature);
+        jsonObject.put("cityName", cityName);
+        jsonObject.put("countryName", countryName);
+        jsonObject.put("windAngle", windAngle);
+        jsonObject.put("windSpeed", windSpeed);
+        jsonObject.put("effect", effect);
+        return jsonObject.toJSONString();
     }
 
 }

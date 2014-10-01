@@ -48,11 +48,11 @@ public class WeatherRequest {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        WeatherRequest that = (WeatherRequest) o;
+        WeatherRequest request = (WeatherRequest) o;
 
-        if (!city.equals(that.city)) return false;
-        if (!country.equals(that.country)) return false;
-        if (!date.equals(that.date)) return false;
+        if (!city.equals(request.city)) return false;
+        if (!country.equals(request.country)) return false;
+        if (date != null ? !date.equals(request.date) : request.date != null) return false;
 
         return true;
     }
@@ -61,7 +61,7 @@ public class WeatherRequest {
     public int hashCode() {
         int result = country.hashCode();
         result = 31 * result + city.hashCode();
-        result = 31 * result + date.hashCode();
+        result = 31 * result + (date != null ? date.hashCode() : 0);
         return result;
     }
 

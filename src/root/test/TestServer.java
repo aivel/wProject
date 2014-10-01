@@ -14,7 +14,6 @@ import root.server.message.model.Message;
 import root.server.model.Server;
 
 import java.net.InetAddress;
-import java.util.Date;
 
 /**
  * Created by Max on 9/29/2014.
@@ -36,18 +35,23 @@ public class TestServer {
                     JSONParser parser = new JSONParser();
                     jsonObject = (JSONObject) parser.parse(str);
                 } catch (ParseException e) {
-                    e.printStackTrace();
+                    System.out.println("Failed to parse JSON: " + e.getMessage());
+                    return;
                 }
                 String country = (String) jsonObject.get("country");
                 String city = (String) jsonObject.get("city");
-                WeatherRequest request = new WeatherRequest(country, city, new Date());
-                service.getWeather(request, new WeatherService.WeatherCallback() {
+                WeatherRequest request = new WeatherRequest(country, city, null);
+                Weather weather = service.getWeather(request, new WeatherService.WeatherCallback() {
                     @Override
                     public void onLoad(final Weather weather) {
                         final Message msg = new ByteMessage(message.getSenderAddress(), weather.toString());
                         sendResponse(msg);
                     }
                 });
+                if (weather != null) {
+                    final Message msg = new ByteMessage(message.getSenderAddress(), weather.toString());
+                    sendResponse(msg);
+                }
             }
 
         });

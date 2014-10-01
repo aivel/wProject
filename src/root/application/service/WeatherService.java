@@ -17,7 +17,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Date;
 
 /**
  * Created by Semyon Danilov on 01.10.2014.
@@ -29,7 +28,11 @@ public class WeatherService {
     private final String apiUrl = "http://api.openweathermap.org/data/2.5/weather?q=";
 
     public Weather getWeather(final WeatherRequest request, final WeatherCallback callback) {
-        WeatherThread thread = new WeatherThread(new WeatherRequest("RU", "Saint-Petersburg", new Date()), callback);
+        Weather weather = cache.get(request);
+        if (weather != null) {
+            return weather;
+        }
+        WeatherThread thread = new WeatherThread(request, callback);
         thread.start();
         return null;
     }
@@ -91,6 +94,7 @@ public class WeatherService {
                     String effect = (String) _weather.get("main");
                     weather.setWindSpeed(speed);
                     weather.setEffect(effect);
+                    cache.put(request, weather);
                     callback.onLoad(weather);
                 }
 
