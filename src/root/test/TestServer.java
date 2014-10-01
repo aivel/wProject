@@ -42,14 +42,31 @@ public class TestServer {
                 String city = (String) jsonObject.get("city");
                 WeatherRequest request = new WeatherRequest(country, city, null);
                 Weather weather = service.getWeather(request, new WeatherService.WeatherCallback() {
+
                     @Override
                     public void onLoad(final Weather weather) {
-                        final Message msg = new ByteMessage(message.getSenderAddress(), weather.toString());
+                        JSONObject json = new JSONObject();
+                        json.put("success", true);
+                        json.put("weather", weather.toJSON());
+                        final Message msg = new ByteMessage(message.getSenderAddress(), json.toJSONString());
                         sendResponse(msg);
                     }
+
+                    @Override
+                    public void onLoad(final String error) {
+                        JSONObject json = new JSONObject();
+                        json.put("success", false);
+                        json.put("error", error);
+                        final Message msg = new ByteMessage(message.getSenderAddress(), json.toJSONString());
+                        sendResponse(msg);
+                    }
+
                 });
                 if (weather != null) {
-                    final Message msg = new ByteMessage(message.getSenderAddress(), weather.toString());
+                    JSONObject json = new JSONObject();
+                    json.put("success", true);
+                    json.put("weather", weather.toJSON());
+                    final Message msg = new ByteMessage(message.getSenderAddress(), json.toJSONString());
                     sendResponse(msg);
                 }
             }

@@ -73,7 +73,11 @@ public class WeatherService {
                     String jsonString = sb.toString();
                     JSONObject jsonObject = (JSONObject) (new JSONParser()).parse(jsonString);
                     System.out.println(jsonObject.toJSONString());
-
+                    Integer code = NumberUtils.objectToInteger(jsonObject.get("cod"));
+                    if (code != 200) {
+                        callback.onLoad(jsonObject.get("message").toString());
+                        return;
+                    }
                     String city = (String) jsonObject.get("name");
                     JSONObject main = (JSONObject) jsonObject.get("main");
                     JSONObject sys = (JSONObject) jsonObject.get("sys");
@@ -110,6 +114,8 @@ public class WeatherService {
     public static abstract class WeatherCallback {
 
         public abstract void onLoad(final Weather weather);
+
+        public abstract void onLoad(final String error);
 
     }
 

@@ -87,8 +87,7 @@ public class Weather {
         this.temperature = temperature;
     }
 
-    @Override
-    public String toString() {
+    public JSONObject toJSON() {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("temperature", temperature);
         jsonObject.put("minTemperature", minTemperature);
@@ -97,7 +96,20 @@ public class Weather {
         jsonObject.put("windAngle", windAngle);
         jsonObject.put("windSpeed", windSpeed);
         jsonObject.put("effect", effect);
-        return jsonObject.toJSONString();
+        return jsonObject;
+    }
+
+    @Override
+    public String toString() {
+        return "Weather{" +
+                "temperature=" + temperature +
+                ", minTemperature=" + minTemperature +
+                ", cityName='" + cityName + '\'' +
+                ", countryName='" + countryName + '\'' +
+                ", windAngle=" + windAngle +
+                ", windSpeed=" + windSpeed +
+                ", effect='" + effect + '\'' +
+                '}';
     }
 
 }

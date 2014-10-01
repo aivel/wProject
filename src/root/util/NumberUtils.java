@@ -24,4 +24,23 @@ public class NumberUtils {
         return null;
     }
 
+    public static Integer objectToInteger(final Object object) {
+        if (object == null) {
+            return null;
+        }
+        if (object instanceof Integer) {
+            return (Integer) object;
+        } else if (object instanceof String) {
+            try {
+                Integer d = Integer.parseInt((String) object);
+                return d;
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        } else if (object instanceof Number) {
+            return ((Number) object).intValue();
+        }
+        return null;
+    }
+
 }
