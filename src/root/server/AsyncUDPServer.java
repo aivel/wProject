@@ -1,5 +1,6 @@
 package root.server;
 
+import com.sun.istack.internal.NotNull;
 import root.server.message.ByteMessage;
 import root.server.message.model.Message;
 import root.server.model.Server;
@@ -19,7 +20,10 @@ import java.util.logging.Logger;
 /**
  * Created by Max on 9/29/2014.
  */
-public class AsyncUDPServer implements Server, Runnable {
+public class AsyncUDPServer implements Server {
+
+    private static final Object monitor = new Object();
+
     private final int MESSAGES_AMOUNT_TO_INIT_FORCED_PROCESSING = 4;
     private int bufferSize;
     private Queue<Message> outgoingMessages;
@@ -27,7 +31,10 @@ public class AsyncUDPServer implements Server, Runnable {
     private DatagramChannel serverChannel;
     private InetSocketAddress isa;
     private SelectionKey selectionKey;
-    private boolean running;
+    private volatile boolean running;
+
+    @NotNull
+    private MessageHandler handler;
 
     public AsyncUDPServer(final InetAddress address, final int port, final int bufferSize) {
         this.bufferSize = bufferSize;
@@ -54,11 +61,7 @@ public class AsyncUDPServer implements Server, Runnable {
         final String msgString = new String( message.getData() ).trim();
         System.out.println("Incoming message: '" + msgString + "' from "
                 + message.getSenderAddress().toString() );
-
-        if (msgString.startsWith("r")) {
-            final Message msg = new ByteMessage(message.getSenderAddress(), "response text!".getBytes());
-            enqueueOutgoingMessage(msg);
-        }
+        handler.handleMessage(message);
     }
 
     @Override
@@ -68,21 +71,22 @@ public class AsyncUDPServer implements Server, Runnable {
 
     @Override
     public void enqueueOutgoingMessage(final Message message) {
-        synchronized (outgoingMessages) {
-            if (outgoingMessages == null)
+        synchronized (monitor) {
+            if (outgoingMessages == null) {
                 throw new NullPointerException("outgoingMessages queue should have been created to this moment!");
+            }
 
             outgoingMessages.add(message);
 
-            if (MESSAGES_AMOUNT_TO_INIT_FORCED_PROCESSING != 0 &&
-                    outgoingMessages.size() >= MESSAGES_AMOUNT_TO_INIT_FORCED_PROCESSING)
+            if (outgoingMessages.size() >= MESSAGES_AMOUNT_TO_INIT_FORCED_PROCESSING) {
                 processOutgoingMessages();
+            }
         }
     }
 
     @Override
     public void processOutgoingMessages() {
-        synchronized (outgoingMessages) {
+        synchronized (monitor) {
             if (outgoingMessages == null)
                 throw new NullPointerException("outgoingMessages queue should have been created to this moment!");
 
@@ -117,6 +121,9 @@ public class AsyncUDPServer implements Server, Runnable {
 
     @Override
     public void run() {
+        if (handler == null) {
+            throw new RuntimeException("Unable to start server without handler");
+        }
         while (running) {
             processOutgoingMessages();
             //update(); -- for subscriptions support, if needed
@@ -148,7 +155,9 @@ public class AsyncUDPServer implements Server, Runnable {
                     }
 
                     readBuffer.flip();
-                    processIncomingMessage(new ByteMessage(senderAddress, readBuffer.array()));
+                    byte[] b = new byte[readBuffer.remaining()];
+                    readBuffer.get(b, 0, b.length);
+                    processIncomingMessage(new ByteMessage(senderAddress, b));
                 }
             }
 
@@ -157,4 +166,12 @@ public class AsyncUDPServer implements Server, Runnable {
             //processIncomingMessages(); -- not sure if we need a queue of incoming messages
         }
     }
+
+    @Override
+    public void setHandler(final MessageHandler handler) {
+        this.handler = handler;
+    }
+
 }
+
+
