@@ -21,5 +21,4 @@ public abstract class MessageHandler {
     }
 
     public abstract void handleMessage(@NotNull final Message message);
-
 }

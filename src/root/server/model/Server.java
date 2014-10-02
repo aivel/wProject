@@ -15,5 +15,5 @@ public interface Server extends Runnable {
     void startRunning();
     void stopRunning();
     boolean isRunning();
-    void setHandler(final MessageHandler handler);
+    void setMessageHandler(final MessageHandler handler);
 }

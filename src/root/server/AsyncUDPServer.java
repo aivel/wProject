@@ -1,9 +1,8 @@
 package root.server;
 
-import com.sun.istack.internal.NotNull;
 import root.server.message.ByteMessage;
 import root.server.message.model.Message;
-import root.server.model.Server;
+import root.server.model.QServer;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -12,34 +11,20 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 /**
  * Created by Max on 9/29/2014.
  */
-public class AsyncUDPServer implements Server {
+public class AsyncUDPServer extends QServer {
 
-    private static final Object monitor = new Object();
-
-    private final int MESSAGES_AMOUNT_TO_INIT_FORCED_PROCESSING = 4;
-    private int bufferSize;
-    private Queue<Message> outgoingMessages;
     private Selector channelsSelector;
     private DatagramChannel serverChannel;
-    private InetSocketAddress isa;
     private SelectionKey selectionKey;
-    private volatile boolean running;
-
-    @NotNull
-    private MessageHandler handler;
 
     public AsyncUDPServer(final InetAddress address, final int port, final int bufferSize) {
-        this.bufferSize = bufferSize;
-        this.outgoingMessages = new ConcurrentLinkedQueue<>();
-        this.isa = (address != null ? new InetSocketAddress(address, port) : new InetSocketAddress(port));
+        super(bufferSize, address, port);
 
         try {
             this.serverChannel = DatagramChannel.open();
@@ -53,46 +38,6 @@ public class AsyncUDPServer implements Server {
         }
 
         channelsSelector.wakeup();
-        this.running = true;
-    }
-
-    @Override
-    public void processIncomingMessage(final Message message) {
-        final String msgString = new String( message.getData() ).trim();
-        System.out.println("Incoming message: '" + msgString + "' from "
-                + message.getSenderAddress().toString() );
-        handler.handleMessage(message);
-    }
-
-    @Override
-    public void processIncomingMessages() {
-        //
-    }
-
-    @Override
-    public void enqueueOutgoingMessage(final Message message) {
-        synchronized (monitor) {
-            if (outgoingMessages == null) {
-                throw new NullPointerException("outgoingMessages queue should have been created to this moment!");
-            }
-
-            outgoingMessages.add(message);
-
-            if (outgoingMessages.size() >= MESSAGES_AMOUNT_TO_INIT_FORCED_PROCESSING) {
-                processOutgoingMessages();
-            }
-        }
-    }
-
-    @Override
-    public void processOutgoingMessages() {
-        synchronized (monitor) {
-            if (outgoingMessages == null)
-                throw new NullPointerException("outgoingMessages queue should have been created to this moment!");
-
-            while (!outgoingMessages.isEmpty())
-                sendMessage(outgoingMessages.poll());
-        }
     }
 
     @Override
@@ -105,25 +50,11 @@ public class AsyncUDPServer implements Server {
     }
 
     @Override
-    public void startRunning() {
-        running = true;
-    }
-
-    @Override
-    public void stopRunning() {
-        running = false;
-    }
-
-    @Override
-    public boolean isRunning() {
-        return running;
-    }
-
-    @Override
     public void run() {
-        if (handler == null) {
-            throw new RuntimeException("Unable to start server without handler");
+        if (messageHandler == null) {
+            throw new RuntimeException("Unable to start server without messageHandler");
         }
+
         while (running) {
             processOutgoingMessages();
             //update(); -- for subscriptions support, if needed
@@ -165,11 +96,6 @@ public class AsyncUDPServer implements Server {
 
             //processIncomingMessages(); -- not sure if we need a queue of incoming messages
         }
-    }
-
-    @Override
-    public void setHandler(final MessageHandler handler) {
-        this.handler = handler;
     }
 
 }

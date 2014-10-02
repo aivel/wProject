@@ -7,8 +7,8 @@ import org.json.simple.parser.ParseException;
 import root.application.model.Weather;
 import root.application.model.WeatherRequest;
 import root.application.service.WeatherService;
-import root.server.AsyncUDPServer;
 import root.server.MessageHandler;
+import root.server.SyncUDPServer;
 import root.server.message.ByteMessage;
 import root.server.message.model.Message;
 import root.server.model.Server;
@@ -21,21 +21,23 @@ import java.net.InetAddress;
 public class TestServer {
     static public void main(String[] args) {
         final int bufferSize = 256;
-        final Server server = new AsyncUDPServer(InetAddress.getLoopbackAddress(), 12304, bufferSize);
-        server.setHandler(new MessageHandler(server) {
+        final Server server = new SyncUDPServer(InetAddress.getLoopbackAddress(), 12304, bufferSize);
+        server.setMessageHandler(new MessageHandler(server) {
 
             private WeatherService service = new WeatherService();
 
             @Override
             public void handleMessage(@NotNull final Message message) {
-                System.out.println(new String(message.getData()));
-                String str = new String(message.getData());
+                String str = new String(message.getData()).trim();
+                System.out.println(str);
                 JSONObject jsonObject = null;
                 try {
                     JSONParser parser = new JSONParser();
                     jsonObject = (JSONObject) parser.parse(str);
                 } catch (ParseException e) {
                     System.out.println("Failed to parse JSON: " + e.getMessage());
+                    final ByteMessage msg = new ByteMessage(message.getSenderAddress(), "Error while parsing JSON.");
+                    sendResponse(msg);
                     return;
                 }
                 String country = (String) jsonObject.get("country");

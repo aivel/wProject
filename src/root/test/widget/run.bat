@@ -1,0 +1,1 @@
+"C:\Program Files (x86)\Python27\pythonw.exe" weatherd.pyw "RU" "Vologda"
