@@ -13,6 +13,7 @@ import root.server.message.ByteMessage;
 import root.server.message.model.Message;
 import root.server.model.Server;
 
+import java.io.FileOutputStream;
 import java.net.InetAddress;
 
 /**
@@ -42,16 +43,25 @@ public class TestServer {
                 }
                 String country = (String) jsonObject.get("country");
                 String city = (String) jsonObject.get("city");
+                final String pipeName = (String) jsonObject.get("pipe_name");
                 WeatherRequest request = new WeatherRequest(country, city, null);
                 Weather weather = service.getWeather(request, new WeatherService.WeatherCallback() {
 
                     @Override
                     public void onLoad(final Weather weather) {
                         JSONObject json = new JSONObject();
-                        json.put("success", true);
-                        json.put("weather", weather.toJSON());
-                        final Message msg = new ByteMessage(message.getSenderAddress(), json.toJSONString());
-                        sendResponse(msg);
+                        try {
+                            sendWeatherToPipe(weather, pipeName);
+                            json.put("success", true);
+                            json.put("weather", weather.toJSON());
+                            final Message msg = new ByteMessage(message.getSenderAddress(), json.toJSONString());
+                            sendResponse(msg);
+                        } catch (Exception e) {
+                            json.put("success", false);
+                            json.put("error", "Failed to use pipe: " + e.getMessage());
+                            final Message msg = new ByteMessage(message.getSenderAddress(), json.toJSONString());
+                            sendResponse(msg);
+                        }
                     }
 
                     @Override
@@ -66,10 +76,18 @@ public class TestServer {
                 });
                 if (weather != null) {
                     JSONObject json = new JSONObject();
-                    json.put("success", true);
-                    json.put("weather", weather.toJSON());
-                    final Message msg = new ByteMessage(message.getSenderAddress(), json.toJSONString());
-                    sendResponse(msg);
+                    try {
+                        sendWeatherToPipe(weather, pipeName);
+                        json.put("success", true);
+                        json.put("weather", weather.toJSON());
+                        final Message msg = new ByteMessage(message.getSenderAddress(), json.toJSONString());
+                        sendResponse(msg);
+                    } catch (Exception e) {
+                        json.put("success", false);
+                        json.put("error", "Failed to use pipe: " + e.getMessage());
+                        final Message msg = new ByteMessage(message.getSenderAddress(), json.toJSONString());
+                        sendResponse(msg);
+                    }
                 }
             }
 
@@ -77,4 +95,17 @@ public class TestServer {
         new Thread(server).start();
         System.out.println("Test server successfully started!");
     }
+
+    private static void sendWeatherToPipe(final Weather weather, final String pipeName) throws Exception {
+        // Connect to the pipe
+        String reqPipePath = pipeName;
+        FileOutputStream requestStream = new FileOutputStream(reqPipePath);
+        String echoText = weather.toJSON().toJSONString() + "\n";
+        byte[] bytes = echoText.getBytes();
+        bytes[bytes.length - 1] = 0;
+        requestStream.write(bytes);
+        requestStream.flush();
+        requestStream.close();
+    }
+
 }

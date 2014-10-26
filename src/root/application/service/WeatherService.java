@@ -37,6 +37,40 @@ public class WeatherService {
         return null;
     }
 
+    public WeatherPromise getWeatherPromise(final WeatherRequest request) {
+        Weather weather = cache.get(request);
+        if (weather != null) {
+            WeatherPromise promise = new WeatherPromise(null);
+            promise.setResult(weather);
+            return promise;
+        }
+        WeatherPromiseCallback callback = new WeatherPromiseCallback();
+        WeatherThread thread = new WeatherThread(request, new WeatherPromiseCallback());
+        final WeatherPromise promise = new WeatherPromise(thread);
+        callback.setPromise(promise);
+        thread.start();
+        return promise;
+    }
+
+    private static class WeatherPromiseCallback extends WeatherCallback {
+
+        private WeatherPromise promise;
+
+        public void setPromise(final WeatherPromise promise) {
+            this.promise = promise;
+        }
+
+        @Override
+        public void onLoad(final Weather weather) {
+            promise.setResult(weather);
+        }
+
+        @Override
+        public void onLoad(final String error) {
+
+        }
+    }
+
     private class WeatherThread extends Thread {
 
         private WeatherRequest request;
@@ -116,6 +150,38 @@ public class WeatherService {
         public abstract void onLoad(final Weather weather);
 
         public abstract void onLoad(final String error);
+
+    }
+
+    public static class WeatherPromise {
+
+        private boolean isReady = false;
+        private Weather weather = null;
+        private Thread thread = null;
+
+        public WeatherPromise(final Thread thread) {
+            this.thread = thread;
+        }
+
+        public synchronized boolean isReady() {
+            return isReady;
+        }
+
+        public synchronized void setResult(final Weather weather) {
+            this.weather = weather;
+            this.isReady = true;
+        }
+
+        public Weather waitForResult() {
+            try {
+                while (!isReady()) {
+                    thread.join();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return weather;
+        }
 
     }
 

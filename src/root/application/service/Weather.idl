@@ -1,0 +1,20 @@
+module WeatherApp
+{
+    interface WeatherInterface
+    {
+        struct WeatherIDL {
+            double temperature;
+            double minTemperature;
+            string cityName;
+            string countryName;
+            double windAngle;
+            double windSpeed;
+            string effect;
+        };
+
+        WeatherIDL get(in string city, in string country);
+
+    };
+
+};
+
