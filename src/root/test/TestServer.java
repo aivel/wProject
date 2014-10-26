@@ -67,6 +67,7 @@ public class TestServer {
                 WeatherRequest request = new WeatherRequest(country, city, null);
                 Weather weather = null;
                 if (isServerOffline) {
+                    System.out.println("Someone connected, server is offline, going to ask for IDL");
                     weather = corbaWeatherClient.getWeather(city, country);
                 } else {
                     weather = service.getWeather(request, new WeatherService.WeatherCallback() {

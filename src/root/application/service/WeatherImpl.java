@@ -24,6 +24,7 @@ public class WeatherImpl extends WeatherInterfacePOA {
 
     @Override
     public WeatherIDL get(final String city, final String country) {
+        System.out.println("Someone connected by IDL and requested weather");
         WeatherService.WeatherPromise weatherPromise = weatherService.getWeatherPromise(new WeatherRequest(country, city, null));
         Weather weather = weatherPromise.waitForResult();
         WeatherIDL weatherIDL = new WeatherIDL(weather.getTemperature(),
