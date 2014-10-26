@@ -45,7 +45,7 @@ public class WeatherService {
             return promise;
         }
         WeatherPromiseCallback callback = new WeatherPromiseCallback();
-        WeatherThread thread = new WeatherThread(request, new WeatherPromiseCallback());
+        WeatherThread thread = new WeatherThread(request, callback);
         final WeatherPromise promise = new WeatherPromise(thread);
         callback.setPromise(promise);
         thread.start();

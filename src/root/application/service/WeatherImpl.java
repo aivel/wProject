@@ -6,8 +6,6 @@ import root.application.model.WeatherRequest;
 import root.application.service.WeatherApp.WeatherInterfacePOA;
 import root.application.service.WeatherApp.WeatherInterfacePackage.WeatherIDL;
 
-import java.util.Date;
-
 /**
  * Created by Semyon Danilov on 26.10.2014.
  */
@@ -26,7 +24,7 @@ public class WeatherImpl extends WeatherInterfacePOA {
 
     @Override
     public WeatherIDL get(final String city, final String country) {
-        WeatherService.WeatherPromise weatherPromise = weatherService.getWeatherPromise(new WeatherRequest(country, city, new Date()));
+        WeatherService.WeatherPromise weatherPromise = weatherService.getWeatherPromise(new WeatherRequest(country, city, null));
         Weather weather = weatherPromise.waitForResult();
         WeatherIDL weatherIDL = new WeatherIDL(weather.getTemperature(),
                 weather.getMinTemperature(),

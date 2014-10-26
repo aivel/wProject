@@ -12,12 +12,12 @@ import root.application.service.WeatherApp.WeatherInterfaceHelper;
 /**
  * Created by Semyon Danilov on 26.10.2014.
  */
-public class CorbaWeatherService {
+public class CorbaWeatherServer {
 
     private int port;
     private WeatherService weatherService;
 
-    public CorbaWeatherService(final int port, final WeatherService weatherService) {
+    public CorbaWeatherServer(final int port, final WeatherService weatherService) {
         this.port = port;
         this.weatherService = weatherService;
     }
