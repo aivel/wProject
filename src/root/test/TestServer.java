@@ -104,6 +104,7 @@ public class TestServer {
                     try {
                         json.put("success", true);
                         json.put("weather", weather.toJSON());
+                        json.put("isIDL", isServerOffline);
                         final Message msg = new ByteMessage(message.getSenderAddress(), json.toJSONString());
                         sendResponse(msg);
                     } catch (Exception e) {
