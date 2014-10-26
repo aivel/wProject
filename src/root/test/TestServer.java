@@ -37,8 +37,14 @@ public class TestServer {
             corbaWeatherClient.run();
         } else {
             isServerOffline = false;
-            corbaWeatherServer = new CorbaWeatherServer(1050, service);
-            corbaWeatherServer.run();
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    corbaWeatherServer = new CorbaWeatherServer(1050, service);
+                    corbaWeatherServer.run();
+                }
+            };
+            thread.start();
         }
         server.setMessageHandler(new MessageHandler(server) {
 
